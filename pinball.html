@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toadcode Home</title>
+    <style>
+        :root {
+            --primary-bg: #0a0a0a;
+            --card-bg: #141414;
+            --accent-color: #4ade80; 
+            --text-main: #e0e0e0;
+            --text-dim: #777;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+        }
+
+        .wrapper { max-width: 900px; width: 100%; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(74, 222, 128, 0.3);
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #222;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+        #game-box {
+            position: relative;
+            background: #050505;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #222;
+            box-shadow: inset 0 0 30px #000;
+            display: flex;
+            justify-content: center;
+        }
+
+        canvas { display: block; touch-action: none; }
+
+        .controls-hint {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-dim);
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .pinball-link {
+            display: inline-block;
+            background: var(--accent-color);
+            color: #000;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 700;
+            margin-top: 15px;
+        }
+
+        @media (max-width: 700px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <header>
+            <div class="logo">toadcode</div>
+            <div style="color: var(--text-dim);">[ menu ]</div>
+        </header>
+
+        <main class="container">
+            <div class="card">
+                <h2>Projects</h2>
+                <p>Play the full version of Toad Pinball:</p>
+                <a href="https://toadcode.net/pinball.html" class="pinball-link">LAUNCH FULL GAME</a>
+            </div>
+
+            <div class="card">
+                <div id="game-box">
+                    <canvas id="miniPinball" width="300" height="550"></canvas>
+                </div>
+                <div class="controls-hint">A / D Keys • Space to Launch</div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('miniPinball');
+        const ctx = canvas.getContext('2d');
+
+        let ball = { x: 282, y: 520, vx: 0, vy: 0, r: 7, active: false };
+        let score = 0;
+        let leftFlip = { x: 60, y: 500, active: false, angle: 0.4 };
+        let rightFlip = { x: 210, y: 500, active: false, angle: -0.4 };
+        
+        const bumpers = [
+            { x: 100, y: 150, r: 22, color: '#4ade80' },
+            { x: 180, y: 150, r: 22, color: '#4ade80' },
+            { x: 140, y: 250, r: 28, color: '#22c55e' }
+        ];
+
+        function drawGrid() {
+            ctx.strokeStyle = '#111';
+            ctx.lineWidth = 1;
+            for(let i=0; i<canvas.width; i+=25) {
+                ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i,canvas.height); ctx.stroke();
+            }
+            // Launch Lane
+            ctx.strokeStyle = '#333';
+            ctx.beginPath(); ctx.moveTo(265, 100); ctx.lineTo(265, canvas.height); ctx.stroke();
+        }
+
+        function drawFlipper(f, isLeft) {
+            ctx.save();
+            ctx.translate(f.x, f.y);
+            let displayAngle = isLeft ? (f.active ? -0.6 : 0.4) : (f.active ? 0.6 : -0.4);
+            ctx.rotate(displayAngle);
+            ctx.lineCap = "round";
+            ctx.lineWidth = 12;
+            ctx.strokeStyle = "#fff";
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(isLeft ? 60 : -60, 0);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function update() {
+            if (!ball.active) {
+                ball.x = 282; ball.y = 520;
+                return;
+            }
+
+            ball.vy += 0.22; // Lighter gravity
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+            // Wall Collisions
+            if (ball.x < ball.r) { ball.x = ball.r; ball.vx *= -0.6; }
+            if (ball.x > canvas.width - ball.r) { ball.x = canvas.width - ball.r; ball.vx *= -0.6; }
+            if (ball.y < ball.r) { 
+                ball.y = ball.r; 
+                ball.vy *= -0.6;
+                // If in launch lane area, push it left into the board
+                if (ball.x > 250) ball.vx = -5;
+            }
+
+            // Bumper Collisions
+            bumpers.forEach(b => {
+                let dx = ball.x - b.x;
+                let dy = ball.y - b.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < ball.r + b.r) {
+                    let angle = Math.atan2(dy, dx);
+                    ball.vx = Math.cos(angle) * 10;
+                    ball.vy = Math.sin(angle) * 10;
+                    score += 100;
+                }
+            });
+
+            // FIXED PADDLE LOGIC: Hits if ball is in the "strike zone" while key is active
+            if (leftFlip.active && ball.y > 470 && ball.y < 520 && ball.x < 130) {
+                ball.vy = -13;
+                ball.vx = 4;
+                score += 10;
+            }
+            if (rightFlip.active && ball.y > 470 && ball.y < 520 && ball.x > 140 && ball.x < 250) {
+                ball.vy = -13;
+                ball.vx = -4;
+                score += 10;
+            }
+
+            // Fall out
+            if (ball.y > canvas.height) { ball.active = false; score = 0; }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+
+            bumpers.forEach(b => {
+                ctx.shadowBlur = 15; ctx.shadowColor = b.color;
+                ctx.fillStyle = b.color;
+                ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2); ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+
+            drawFlipper(leftFlip, true);
+            drawFlipper(rightFlip, false);
+
+            ctx.shadowBlur = 10; ctx.shadowColor = "#fff";
+            ctx.fillStyle = "#fff";
+            ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = "#4ade80";
+            ctx.font = "bold 20px monospace";
+            ctx.fillText(score.toString().padStart(6, '0'), 20, 40);
+
+            update();
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'a') leftFlip.active = true;
+            if (e.key.toLowerCase() === 'd') rightFlip.active = true;
+            if (e.code === 'Space' && !ball.active) {
+                ball.active = true;
+                ball.vy = -22; // Ultra launch power
+                ball.vx = 0;
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            if (e.key.toLowerCase() === 'a') leftFlip.active = false;
+            if (e.key.toLowerCase() === 'd') rightFlip.active = false;
+        });
+
+        draw();
+    </script>
+</body>
+</html> 
