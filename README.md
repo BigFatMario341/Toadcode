@@ -1,2 +1,2 @@
 # Toadcode
-goto toadcode.net/home.html
+goto toadcode.net
