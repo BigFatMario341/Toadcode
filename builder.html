@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toadcode Home | No-Code Builder</title>
+    <style>
+        :root {
+            --primary-bg: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #4ade80; 
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+            --button-hover: #22c55e;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+        }
+
+        .wrapper {
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid #333;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--accent-color);
+            text-transform: lowercase;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 30px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+        }
+
+        /* Builder Controls */
+        .toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tool-btn {
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            text-align: left;
+            transition: 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: var(--accent-color);
+            color: #000;
+        }
+
+        .download-btn {
+            margin-top: 20px;
+            background: #fff;
+            color: #000;
+            border: none;
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* Canvas */
+        #canvas {
+            min-height: 400px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            color: #333;
+            overflow-y: auto;
+        }
+
+        #canvas:empty::before {
+            content: 'Click a tool to start building your page...';
+            color: #999;
+            font-style: italic;
+        }
+
+        .editable-element {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px dashed transparent;
+            position: relative;
+        }
+
+        .editable-element:hover {
+            border-color: #4ade80;
+        }
+
+        @media (max-width: 850px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <header>
+            <div class="logo">toadcode</div>
+            <div style="font-size: 0.9rem; color: var(--text-dim);">No-Code Builder v1.0</div>
+        </header>
+
+        <main class="container">
+            <aside class="card">
+                <h2>Toad Tools</h2>
+                <div class="toolbar">
+                    <button class="tool-btn" onclick="addEl('h1')">+ Add Big Title</button>
+                    <button class="tool-btn" onclick="addEl('p')">+ Add Paragraph</button>
+                    <button class="tool-btn" onclick="addEl('img')">+ Add Toad Image</button>
+                    <button class="tool-btn" onclick="addEl('hr')">+ Add Divider Line</button>
+                    <button class="tool-btn" onclick="clearCanvas()" style="border-color: #ff4b4b; color: #ff4b4b; background: rgba(255,75,75,0.1);">Clear All</button>
+                </div>
+                <button class="download-btn" onclick="downloadPage()">Download .HTML File</button>
+            </aside>
+
+            <section class="card">
+                <h2>Live Preview</h2>
+                <div id="canvas" contenteditable="true">
+                    <h1 style="color: #121212;">Welcome to my page!</h1>
+                    <p>Click here to edit any text you see.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        function addEl(type) {
+            const canvas = document.getElementById('canvas');
+            let newEl;
+
+            if (type === 'h1') {
+                newEl = document.createElement('h1');
+                newEl.innerText = 'New Heading';
+            } else if (type === 'p') {
+                newEl = document.createElement('p');
+                newEl.innerText = 'Click here to write something cool.';
+            } else if (type === 'img') {
+                newEl = document.createElement('img');
+                newEl.src = 'https://placehold.co/600x300/4ade80/000000?text=Toad+Image';
+                newEl.style.width = '100%';
+                newEl.style.borderRadius = '10px';
+            } else if (type === 'hr') {
+                newEl = document.createElement('hr');
+            }
+
+            newEl.className = 'editable-element';
+            canvas.appendChild(newEl);
+        }
+
+        function clearCanvas() {
+            if(confirm("Start over?")) document.getElementById('canvas').innerHTML = '';
+        }
+
+        function downloadPage() {
+            const content = document.getElementById('canvas').innerHTML;
+            const fullHtml = `
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Toadcode Page</title>
+    <style>
+        body { font-family: sans-serif; padding: 5%; line-height: 1.6; color: #333; }
+        img { max-width: 100%; border-radius: 10px; }
+        h1 { color: #121212; }
+    </style>
+</head>
+<body>
+    ${content}
+</body>
+</html>`;
+
+            const blob = new Blob([fullHtml], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'my-toad-site.html';
+            a.click();
+        }
+    </script>
+</body>
+</html>
