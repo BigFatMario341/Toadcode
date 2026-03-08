@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toadcode Home</title>
+    <style>
+        :root {
+            --primary-bg: #121212;
+            --card-bg: #1e1e1e;
+            --accent-color: #4ade80; /* Neon Toad Green */
+            --text-main: #e0e0e0;
+            --text-dim: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+        }
+
+        .wrapper { max-width: 900px; width: 100%; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid #333;
+        }
+
+        .logo { font-size: 28px; font-weight: 800; color: var(--accent-color); text-transform: lowercase; }
+
+        .container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            min-height: 350px;
+        }
+
+        h2 { color: var(--accent-color); margin-top: 0; border-bottom: 2px solid #333; padding-bottom: 5px; margin-bottom: 20px; }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #output-area {
+            flex-grow: 1;
+            margin-bottom: 20px;
+            max-height: 250px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-dim);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            background: #2a2a2a;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid #444;
+        }
+
+        input {
+            flex-grow: 1;
+            background: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            padding: 5px;
+            font-family: inherit;
+        }
+
+        .send-btn {
+            background: var(--accent-color);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .research-link {
+            display: block;
+            color: var(--accent-color);
+            text-decoration: none;
+            margin-top: 10px;
+            font-weight: 600;
+            padding: 8px;
+            background: rgba(74, 222, 128, 0.05);
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        .thinking {
+            font-style: italic;
+            color: var(--accent-color);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+        .pinball-link {
+            display: inline-block;
+            background: rgba(74, 222, 128, 0.1);
+            color: var(--accent-color);
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 700px) { .container { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <header>
+            <div class="logo">toadcode</div>
+            <div style="font-size: 24px; cursor: pointer;">≡</div>
+        </header>
+
+        <main class="container">
+            <div class="card">
+                <h2>Projects</h2>
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <a href="https://toadcode.net/pinball.html" class="pinball-link">● Play Pinball</a>
+                    <a href="https://toadcode.net/research.html" class="pinball-link">● Toad Research</a>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Toad Research</h2>
+                <div class="chat-container">
+                    <div id="output-area">
+                        System ready. Input research parameters to begin.
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="text" id="userInput" placeholder="Ask Toad Research...">
+                        <button class="send-btn" onclick="startAIResearch()">Research</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function startAIResearch() {
+            const input = document.getElementById('userInput');
+            const output = document.getElementById('output-area');
+            const query = input.value.trim();
+
+            if (!query) return;
+
+            output.innerHTML = `<div class="thinking">Scanning external databases for "${query}"...</div>`;
+            input.value = '';
+
+            setTimeout(() => {
+                const encodedQuery = encodeURIComponent(query);
+                
+                output.innerHTML = `
+                    <div style="margin-bottom: 12px; color: var(--text-main);">
+                        <strong>Research Analysis Complete:</strong><br>
+                        Topic: <em>${query}</em>. I've compiled several high-authority research paths for your review:
+                    </div>
+                    
+                    <a href="https://www.encyclopedia.com/search/results?q=${encodedQuery}" target="_blank" class="research-link">
+                        Vetted Encyclopedia Archive
+                    </a>
+                    
+                    <a href="https://kids.nationalgeographic.com/search?q=${encodedQuery}" target="_blank" class="research-link">
+                        Science & Nature Report
+                    </a>
+
+                    <a href="https://www.google.com/search?q=${encodedQuery}" target="_blank" class="research-link">
+                        Global Web Directory
+                    </a>
+                `;
+            }, 1000);
+        }
+
+        document.getElementById('userInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') startAIResearch();
+        });
+    </script>
+</body>
+</html>
